@@ -1,69 +1,81 @@
+// Wait for the HTML content to fully load before running the script
 document.addEventListener("DOMContentLoaded", () => {
+
+    // Get references to input field, button, and task list container
     const todoInput = document.getElementById("todo-input");
     const addTaskButton = document.getElementById("add-task-btn");
     const todoList = document.getElementById("todo-list");
 
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];   // To store the task and it's information. if their is nothing to grab in local strorage nothing to parse, then we use the empty array.
-    // JSON.parse is used to convert string to it's original data structure. Here string->array
+    // Load saved tasks from localStorage (if any), otherwise start with an empty array
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
+    // Render all existing tasks on page load
     tasks.forEach((task) => renderTask(task));
 
+    // Add a new task when the button is clicked
     addTaskButton.addEventListener("click", addTask);
-    
+
+    // Also add a new task when "Enter" key is pressed
     todoInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
             addTask();
         }
     });
 
+    // Function to create and store a new task
     function addTask() {
-        const taskText = todoInput.value.trim();
-        if(taskText === "")return;
+        const taskText = todoInput.value.trim(); // Remove extra spaces
+        if (taskText === "") return; // Ignore empty input
 
+        // Create a new task object
         const newTask = {
-            id : Date.now(),   
-            text : taskText,
-            completed : false
+            id: Date.now(),      // Unique ID based on current time
+            text: taskText,      // The task description
+            completed: false     // Initially not completed
         }
 
-        tasks.push(newTask); 
-        saveTasks();
-        renderTask(newTask)  
-        todoInput.value = "";  
+        tasks.push(newTask);     // Add new task to array
+        saveTasks();             // Save updated tasks to localStorage
+        renderTask(newTask);     // Show new task on the page
+        todoInput.value = "";    // Clear input field
     }
 
-    // Read from local storage and render task to DOM
-    // Grab task from local storage. Local storage -> console   
+    // Function to display a single task in the list
     function renderTask(task) {
-        const li = document.createElement("li");
-        li.setAttribute("data-id", task.id);
+        const li = document.createElement("li"); // Create new list item
+        li.setAttribute("data-id", task.id);     // Store task ID in HTML attribute
 
+        // Add task text and delete button inside the list item
         li.innerHTML = `
         <span>${task.text}</span>
         <button>Delete</button>`;
-        
-        if(task.completed) li.classList.add("completed");
 
+        // If task was already completed, add the class for styling
+        if (task.completed) li.classList.add("completed");
+
+        // Toggle completed state when task is clicked (but not delete button)
         li.addEventListener("click", (e) => {
-            if(e.target.tagName === "BUTTON") return;
-            task.completed = !task.completed;
-            li.classList.toggle("completed");
-            saveTasks();
+            if (e.target.tagName === "BUTTON") return; // Ignore button clicks
+            task.completed = !task.completed;         // Flip completed status
+            li.classList.toggle("completed");        // Update style
+            saveTasks();                              // Save changes
         })
 
-        li.querySelector("button").addEventListener("click", (e) =>{
-            e.stopPropagation();
-            tasks = tasks.filter(t => t.id !== task.id);
-            li.remove();
-            saveTasks();
+        // Delete task when delete button is clicked
+        li.querySelector("button").addEventListener("click", (e) => {
+            e.stopPropagation();                      // Prevent parent click event
+            tasks = tasks.filter(t => t.id !== task.id); // Remove from array
+            li.remove();                              // Remove from UI
+            saveTasks();                              // Save updated list
         })
 
+        // Add the new list item to the task list container
         todoList.appendChild(li);
     }
 
-    // Function to store array in local storage 
+    // Save tasks array to localStorage as a string
     function saveTasks() {
-        localStorage.setItem("tasks", JSON.stringify(tasks));  // it takes key:value pair and both has to be string. JSON.stringify is used to convert original data structure to string. Here array->string
+        localStorage.setItem("tasks", JSON.stringify(tasks));
     }
 
 })
