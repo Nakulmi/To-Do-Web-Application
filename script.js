@@ -27,12 +27,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         tasks.push(newTask); 
-        saveTasks();  
+        saveTasks();
+        renderTask(newTask)  
         todoInput.value = "";  
     }
 
+    // Read from local storage and render task to DOM
+    // Grab task from local storage. Local storage -> console   
     function renderTask(task) {
-        console.log(task);
+        const li = document.createElement("li");
+        li.setAttribute("data-id", task.id);
+
+        li.innerHTML = `
+        <span>${task.text}</span>
+        <button>Delete</button>`;
+        
+        if(task.completed) li.classList.add("completed");
+
+        li.addEventListener("click", (e) => {
+            if(e.target.tagName === "BUTTON") return;
+            task.completed = !task.completed;
+            li.classList.toggle("completed");
+            saveTasks();
+        })
+
+        li.querySelector("button").addEventListener("click", (e) =>{
+            e.stopPropagation();
+            tasks = tasks.filter(t => t.id !== task.id);
+            li.remove();
+            saveTasks();
+        })
+
+        todoList.appendChild(li);
     }
 
     // Function to store array in local storage 
